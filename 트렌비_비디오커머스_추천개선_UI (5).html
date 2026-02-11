@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>트렌비 비디오커머스 추천 개선 - UI Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #111; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
+
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .toggle-group { display: flex; gap: 4px; background: #1F2937; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+  .toggle-btn { padding: 10px 24px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .toggle-btn.active { background: #7C3AED; color: #fff; }
+  .toggle-btn:not(.active) { background: transparent; color: #9CA3AF; }
+
+  .phone { width: 375px; height: 812px; background: #000; border-radius: 40px; border: 3px solid #333; position: relative; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+  .status-bar { height: 44px; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; padding: 0 24px; color: #fff; font-size: 13px; font-weight: 600; position: relative; z-index: 50; }
+  .notch { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 120px; height: 28px; background: #000; border-radius: 14px; }
+
+  .video-area { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #2D2D2D 0%, #1a1a2e 50%, #2D2D2D 100%); }
+  .bag-mockup { width: 180px; height: 240px; background: linear-gradient(135deg, #D4A574, #C4915A); border-radius: 16px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition: opacity 0.3s; }
+  .bag-mockup .logo { width: 60px; height: 60px; border: 2px dashed rgba(0,0,0,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: rgba(0,0,0,0.3); }
+  .video-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; transition: opacity 0.3s; }
+
+  .side-btns { position: absolute; right: 16px; top: 35%; display: flex; flex-direction: column; gap: 20px; align-items: center; z-index: 10; }
+  .side-btn { text-align: center; }
+  .side-btn-icon { width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .side-btn-label { font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+  .product-bar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 20; }
+  .product-info { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
+  .product-thumb { width: 48px; height: 48px; border-radius: 8px; background: #D4A574; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(0,0,0,0.4); }
+  .product-detail { flex: 1; min-width: 0; }
+  .product-detail .brand { font-size: 13px; font-weight: 600; color: #fff; }
+  .product-detail .name { font-size: 12px; color: rgba(255,255,255,0.7); }
+  .product-detail .price-row { display: flex; gap: 4px; align-items: baseline; }
+  .product-detail .discount { font-size: 13px; font-weight: 700; color: #A78BFA; }
+  .product-detail .price { font-size: 14px; font-weight: 700; color: #fff; }
+  .rec-btn { padding: 8px 14px; border-radius: 20px; background: rgba(124,58,237,0.9); border: none; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 12px rgba(124,58,237,0.4); display: none; }
+  .rec-btn.show { display: block; }
+  .swipe-bar { background: rgba(0,0,0,0.8); padding: 8px 0 24px; text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); }
+  .close-btn { position: absolute; top: 12px; left: 16px; z-index: 40; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .flow-label { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 40; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 12px; white-space: nowrap; }
+  .flow-label.as-is { background: rgba(239,68,68,0.9); }
+  .flow-label.to-be { background: rgba(34,197,94,0.9); }
+
+  .rec-page { position: absolute; inset: 0; background: #fff; z-index: 35; animation: fadeIn 0.3s ease; overflow-y: auto; display: none; }
+  .rec-page.show { display: block; }
+  .rec-page-header { padding: 20px 16px 8px; display: flex; align-items: center; }
+  .rec-page-header .back { background: none; border: none; font-size: 20px; cursor: pointer; color: #374151; padding: 4px 8px 4px 0; }
+  .rec-page-header .title { font-size: 17px; font-weight: 700; color: #1F2937; }
+  .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .product-card { cursor: pointer; border-radius: 12px; overflow: hidden; background: #fff; }
+  .product-card .img-wrap { position: relative; aspect-ratio: 4/3; background: #F9FAFB; overflow: hidden; border-radius: 10px; }
+  .product-card .img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .product-card .card-info { padding: 6px 4px; }
+  .product-card .card-brand { font-size: 12px; font-weight: 600; color: #1F2937; }
+  .product-card .card-name { font-size: 11px; color: #6B7280; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .product-card .card-price-row { margin-top: 2px; display: flex; align-items: baseline; gap: 4px; }
+  .product-card .card-discount { font-size: 13px; font-weight: 700; color: #7C3AED; }
+  .product-card .card-price { font-size: 13px; font-weight: 700; color: #1F2937; }
+  .grade-badge { position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; z-index: 2; color: #fff; }
+  .grade-badge.s-plus { background: #7C3AED; }
+  .grade-badge.s { background: #8B5CF6; }
+  .grade-badge.a-plus { background: #6366F1; }
+  .grade-badge.a { background: #A78BFA; }
+  .live-badge { position: absolute; top: 8px; right: 8px; background: #7C3AED; color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px; z-index: 2; }
+  .live-badge .play-icon { width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid #fff; }
+  .rec-bottom-btns { padding: 16px; display: flex; gap: 8px; }
+  .rec-bottom-btns .btn-exit { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #D1D5DB; background: #fff; font-size: 14px; font-weight: 600; cursor: pointer; color: #374151; }
+  .rec-bottom-btns .btn-more { flex: 1; padding: 14px; border-radius: 12px; border: none; background: #7C3AED; font-size: 14px; font-weight: 700; cursor: pointer; color: #fff; }
+  .problem-callout { margin: 8px 16px 16px; padding: 12px 16px; background: #FEF2F2; border-radius: 12px; border: 1px solid #FECACA; }
+  .problem-callout .callout-title { font-size: 12px; font-weight: 700; color: #DC2626; margin-bottom: 4px; }
+  .problem-callout .callout-text { font-size: 12px; color: #7F1D1D; line-height: 1.5; }
+
+  /* Bottom Sheet */
+  .bs-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 30; display: none; }
+  .bs-overlay.show { display: block; }
+  .bs-container { position: absolute; bottom: 0; left: 0; right: 0; height: 85%; background: #fff; border-radius: 20px 20px 0 0; display: none; flex-direction: column; z-index: 31; animation: slideUp 0.3s ease-out; }
+  .bs-container.show { display: flex; }
+  .bs-handle { display: flex; justify-content: center; padding: 8px 0 2px; }
+  .bs-handle div { width: 40px; height: 4px; border-radius: 2px; background: #D1D5DB; }
+  .bs-header { display: flex; justify-content: space-between; align-items: center; padding: 4px 20px 8px; }
+  .bs-header .bs-title { font-size: 17px; font-weight: 700; color: #1F2937; }
+  .bs-header .bs-close { background: none; border: none; cursor: pointer; font-size: 22px; color: #9CA3AF; padding: 4px; line-height: 1; }
+  .bs-filters { padding: 0 16px 6px; border-bottom: 1px solid #F3F4F6; }
+  .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+  .filter-chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .filter-chip.active { border: 1.5px solid #7C3AED; background: #F3EEFF; color: #7C3AED; font-weight: 600; }
+  .filter-chip:not(.active) { border: 1px solid #D1D5DB; background: #fff; color: #6B7280; font-weight: 400; }
+  .reset-chip { border: 1.5px solid #EF4444 !important; background: #FEF2F2 !important; color: #EF4444 !important; font-weight: 600 !important; }
+  .filter-expanded { padding-top: 8px; padding-bottom: 4px; display: none; }
+  .filter-expanded.show { display: block; }
+  .filter-section { margin-bottom: 10px; }
+  .filter-section-label { font-size: 12px; font-weight: 600; color: #9CA3AF; margin-bottom: 6px; }
+  .filter-section .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .price-range { padding: 4px 0 2px; }
+  .price-range-track { position: relative; height: 28px; }
+  .price-range-fill { position: absolute; top: 12px; height: 4px; background: #7C3AED; border-radius: 2px; pointer-events: none; z-index: 1; }
+  .price-slider { position: absolute; top: 0; left: 0; width: 100%; height: 28px; -webkit-appearance: none; appearance: none; background: transparent; pointer-events: none; z-index: 2; margin: 0; }
+  .price-slider::-webkit-slider-runnable-track { height: 4px; background: #E5E7EB; border-radius: 2px; }
+  .price-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #7C3AED; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); margin-top: -8px; pointer-events: all; cursor: pointer; position: relative; z-index: 3; }
+  .price-slider::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #7C3AED; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2); pointer-events: all; cursor: pointer; }
+  .price-slider::-moz-range-track { height: 4px; background: transparent; }
+  .price-labels { display: flex; justify-content: space-between; font-size: 12px; color: #7C3AED; font-weight: 600; margin-top: 2px; }
+
+  .bs-products { flex: 1; padding: 10px 12px; display: flex; flex-direction: column; overflow: hidden; }
+  .bs-products .product-grid { flex: 0 0 auto; min-height: 0; }
+  .empty-state { text-align: center; padding: 40px 0; color: #9CA3AF; display: none; }
+  .empty-state.show { display: block; }
+  .empty-state .emoji { font-size: 36px; margin-bottom: 8px; }
+  .empty-state .msg { font-size: 14px; }
+  .empty-state .reset-btn { margin-top: 12px; padding: 8px 20px; border-radius: 8px; border: 1px solid #D1D5DB; background: #fff; font-size: 13px; cursor: pointer; color: #6B7280; }
+
+  /* Pagination */
+  .pagination { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 10px 0 4px; }
+  .page-arrow { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid #E5E7EB; background: #fff; font-size: 18px; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+  .page-arrow:hover:not(:disabled) { background: #F3EEFF; border-color: #7C3AED; color: #7C3AED; }
+  .page-arrow:disabled { opacity: 0.25; cursor: default; }
+  .page-dots { display: flex; gap: 6px; align-items: center; }
+  .page-dot { width: 8px; height: 8px; border-radius: 50%; background: #D1D5DB; transition: all 0.2s; cursor: pointer; border: none; padding: 0; }
+  .page-dot.active { width: 24px; border-radius: 4px; background: #7C3AED; }
+  .page-counter { font-size: 13px; color: #9CA3AF; font-weight: 500; min-width: 40px; text-align: center; }
+
+  .bs-cta { padding: 8px 12px; border-top: 1px solid #F3F4F6; background: #fff; flex-shrink: 0; }
+  .bs-cta button { width: 100%; padding: 12px; border-radius: 12px; border: none; background: #7C3AED; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+  .instructions { margin-top: 24px; text-align: center; max-width: 375px; font-size: 14px; color: #9CA3AF; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="toggle-group">
+  <button class="toggle-btn active" id="asIsBtn" onclick="switchView('asIs')">AS-IS (현재)</button>
+  <button class="toggle-btn" id="toBeBtn" onclick="switchView('toBe')">TO-BE (개선)</button>
+</div>
+
+<div class="phone">
+  <div class="status-bar"><span>9:41</span><div class="notch"></div><span>📶 🔋</span></div>
+  <div class="video-area">
+    <div class="video-center" id="videoCenter"><div class="bag-mockup"><div class="logo">H</div></div></div>
+    <div class="side-btns">
+      <div class="side-btn"><div class="side-btn-icon">🔇</div><div class="side-btn-label">소리</div></div>
+      <div class="side-btn"><div class="side-btn-icon">↗</div><div class="side-btn-label">공유</div></div>
+      <div class="side-btn"><div class="side-btn-icon">🛒</div><div class="side-btn-label">장바구니</div></div>
+      <div class="side-btn"><div class="side-btn-icon">♡</div><div class="side-btn-label">찜</div></div>
+    </div>
+    <div class="product-bar">
+      <div class="product-info">
+        <div class="product-thumb">H</div>
+        <div class="product-detail">
+          <div class="brand">에르메스</div>
+          <div class="name">에블린 29 솔더백 중고</div>
+          <div class="price-row"><span class="discount">5%</span><span class="price">3,610,000원</span></div>
+        </div>
+        <button class="rec-btn" id="recBtn" onclick="openBottomSheet()">추천보기</button>
+      </div>
+      <div class="swipe-bar">스와이프 ▼</div>
+    </div>
+    <button class="close-btn" onclick="handleClose()">✕</button>
+    <div class="flow-label as-is" id="flowLabel">닫기 → 추천페이지 표시</div>
+
+    <!-- AS-IS -->
+    <div class="rec-page" id="recPage">
+      <div class="rec-page-header"><button class="back" onclick="closeRecPage()">‹</button><span class="title">이가원 고객님, 이 상품은 어떠세요?</span></div>
+      <div class="product-grid" id="recGrid" style="padding:16px;"></div>
+      <div class="rec-bottom-btns"><button class="btn-exit" onclick="closeRecPage()">나가기</button><button class="btn-more">더 많은 상품 보기</button></div>
+      <div class="problem-callout"><div class="callout-title">⚠️ 문제점</div><div class="callout-text">영상 클릭률 6~7%로 대부분 사용자가 추천을 소비하지 않고 이탈. 불필요한 depth가 UX를 저해함.</div></div>
+    </div>
+
+    <!-- TO-BE Bottom Sheet -->
+    <div class="bs-overlay" id="bsOverlay" onclick="closeBottomSheet()"></div>
+    <div class="bs-container" id="bsContainer">
+      <div class="bs-handle"><div></div></div>
+      <div class="bs-header"><span class="bs-title">이 상품은 어떠세요?</span><button class="bs-close" onclick="closeBottomSheet()">✕</button></div>
+      <div class="bs-filters">
+        <div class="filter-bar">
+          <button class="filter-chip reset-chip" id="resetChip" onclick="resetFilters()" style="display:none;">✕ 초기화</button>
+          <button class="filter-chip" id="filterToggleChip" onclick="toggleFilters()">필터 펼치기 ▼</button>
+          <button class="filter-chip" id="sortChip" onclick="cycleSort()">정렬: 추천순</button>
+          <button class="filter-chip active" id="brandCountChip">브랜드 1개</button>
+        </div>
+        <div class="filter-expanded" id="filterExpanded">
+          <div class="filter-section"><div class="filter-section-label">브랜드</div><div class="chips" id="brandChips"></div></div>
+          <div class="filter-section"><div class="filter-section-label">카테고리</div><div class="chips" id="categoryChips"></div></div>
+          <div class="filter-section">
+            <div class="filter-section-label">가격대</div>
+            <div class="price-range">
+              <div class="price-range-track" id="priceTrack">
+                <div class="price-range-fill" id="priceFill"></div>
+                <input type="range" class="price-slider" id="priceMin" min="0" max="20000000" step="500000" value="0" oninput="updatePrice()">
+                <input type="range" class="price-slider" id="priceMax" min="0" max="20000000" step="500000" value="20000000" oninput="updatePrice()">
+              </div>
+              <div class="price-labels">
+                <span id="priceLabelMin">0원</span>
+                <span id="priceLabelMax">2,000만원+</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bs-products">
+        <div class="product-grid" id="bsGrid"></div>
+        <div class="empty-state" id="emptyState"><div class="emoji">🔍</div><div class="msg">조건에 맞는 상품이 없습니다</div><button class="reset-btn" onclick="resetFilters()">필터 초기화</button></div>
+        <div class="pagination" id="pagination" style="display:none;">
+          <button class="page-arrow" id="prevBtn" onclick="changePage(-1)">‹</button>
+          <div class="page-dots" id="pageDots"></div>
+          <span class="page-counter" id="pageCounter"></span>
+          <button class="page-arrow" id="nextBtn" onclick="changePage(1)">›</button>
+        </div>
+      </div>
+      <div class="bs-cta"><button>더 많은 상품 보기</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="instructions" id="instructions"><strong style="color:#EF4444">AS-IS:</strong> 좌측 상단 ✕ 버튼을 눌러 추천 페이지를 확인하세요</div>
+
+<script>
+const PRODUCTS = [
+  { id:1, brand:"에르메스", name:"에블린 29 솔더백", price:3610000, discount:5, grade:"A", live:true, img:"https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&h=300&fit=crop", category:"가방" },
+  { id:2, brand:"루이비통", name:"트렁키 체인 크로스백", price:3325000, discount:5, grade:"S+", live:true, img:"https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=300&h=300&fit=crop", category:"가방" },
+  { id:3, brand:"샤넬", name:"클래식 미디엄 플랩", price:12500000, discount:0, grade:"A", live:false, img:"https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=300&h=300&fit=crop", category:"가방" },
+  { id:4, brand:"에르메스", name:"가든파티 36 토트", price:2200000, discount:0, grade:"A", live:true, img:"https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=300&h=300&fit=crop", category:"가방" },
+  { id:5, brand:"구찌", name:"GG 마몬트 숄더백", price:1850000, discount:10, grade:"S", live:false, img:"https://images.unsplash.com/photo-1575032617751-6ddec2089882?w=300&h=300&fit=crop", category:"가방" },
+  { id:6, brand:"프라다", name:"리에디션 2005 나일론", price:2100000, discount:0, grade:"A+", live:true, img:"https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=300&h=300&fit=crop", category:"가방" },
+  { id:7, brand:"디올", name:"레이디 디올 미디엄", price:7800000, discount:0, grade:"A", live:true, img:"https://images.unsplash.com/photo-1614179689702-355944cd0918?w=300&h=300&fit=crop", category:"가방" },
+  { id:8, brand:"셀린느", name:"트리오페 숄더백", price:4200000, discount:8, grade:"S+", live:false, img:"https://images.unsplash.com/photo-1612902456551-404b5c8e3d9d?w=300&h=300&fit=crop", category:"가방" },
+  { id:9, brand:"에르메스", name:"버킨 25 토고", price:18050000, discount:5, grade:"S+", live:true, img:"https://images.unsplash.com/photo-1559563458-527698bf5295?w=300&h=300&fit=crop", category:"가방" },
+  { id:10, brand:"루이비통", name:"네버풀 MM 모노그램", price:2450000, discount:0, grade:"A", live:false, img:"https://images.unsplash.com/photo-1591561954557-26941169b49e?w=300&h=300&fit=crop", category:"가방" },
+  { id:11, brand:"샤넬", name:"보이백 미디엄 캐비어", price:9800000, discount:3, grade:"A+", live:true, img:"https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=300&h=300&fit=crop", category:"가방" },
+  { id:12, brand:"구찌", name:"디오니소스 미니 GG", price:2600000, discount:0, grade:"A", live:false, img:"https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=300&h=300&fit=crop", category:"가방" },
+  { id:13, brand:"에르메스", name:"콘스탄스 24 에프솜", price:15200000, discount:0, grade:"S", live:false, img:"https://images.unsplash.com/photo-1566150902887-9679ecc155ba?w=300&h=300&fit=crop", category:"가방" },
+  { id:14, brand:"에르메스", name:"피코탱 18 클레망스", price:4800000, discount:3, grade:"A+", live:true, img:"https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=300&h=300&fit=crop", category:"가방" },
+  { id:15, brand:"에르메스", name:"린디 26 에버컬러", price:9500000, discount:0, grade:"A", live:false, img:"https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=300&h=300&fit=crop", category:"가방" },
+];
+
+const PER_PAGE = 4;
+const BRANDS = ["에르메스","루이비통","샤넬","구찌","프라다","셀린느","디올"];
+const CATEGORIES = ["전체","가방","지갑","신발","의류","액세서리"];
+const SORTS = ["추천순","가격 낮은순","가격 높은순","신상품순"];
+
+let currentView = "asIs", selectedBrands = ["에르메스"], selectedCategory = "전체", sortIdx = 0, filtersOpen = false, page = 0, filtered = [];
+let priceMin = 0, priceMax = 20000000;
+
+function fmt(p) { return p.toLocaleString() + "원"; }
+function gc(g) { return g === "S+" ? "s-plus" : g === "S" ? "s" : g === "A+" ? "a-plus" : "a"; }
+function card(p) {
+  return `<div class="product-card"><div class="img-wrap"><img src="${p.img}" alt="${p.name}"><span class="grade-badge ${gc(p.grade)}">${p.grade}</span>${p.live ? '<span class="live-badge"><span class="play-icon"></span>LIVE</span>' : ''}</div><div class="card-info"><div class="card-brand">${p.brand}</div><div class="card-name">${p.name}</div><div class="card-price-row">${p.discount > 0 ? `<span class="card-discount">${p.discount}%</span>` : ''}<span class="card-price">${fmt(p.price)}</span></div></div></div>`;
+}
+
+function switchView(v) {
+  currentView = v;
+  document.getElementById("asIsBtn").className = "toggle-btn" + (v==="asIs"?" active":"");
+  document.getElementById("toBeBtn").className = "toggle-btn" + (v==="toBe"?" active":"");
+  document.getElementById("recBtn").className = "rec-btn" + (v==="toBe"?" show":"");
+  document.getElementById("flowLabel").className = "flow-label " + (v==="asIs"?"as-is":"to-be");
+  document.getElementById("flowLabel").textContent = v==="asIs" ? "닫기 → 추천페이지 표시" : "닫기 → 바로 홈으로 복귀";
+  document.getElementById("instructions").innerHTML = v==="asIs"
+    ? '<strong style="color:#EF4444">AS-IS:</strong> 좌측 상단 ✕ 버튼을 눌러 추천 페이지를 확인하세요'
+    : '<strong style="color:#22C55E">TO-BE:</strong> 하단 <strong style="color:#A78BFA">추천보기</strong> 버튼을 탭하여 바텀시트를 확인하세요';
+  closeRecPage(); closeBottomSheet();
+}
+
+function handleClose() { if (currentView==="asIs") document.getElementById("recPage").classList.add("show"); }
+function closeRecPage() { document.getElementById("recPage").classList.remove("show"); }
+
+function openBottomSheet() {
+  page = 0;
+  document.getElementById("bsOverlay").classList.add("show");
+  document.getElementById("bsContainer").classList.add("show");
+  document.getElementById("videoCenter").style.opacity = "0.4";
+  render();
+}
+function closeBottomSheet() {
+  document.getElementById("bsOverlay").classList.remove("show");
+  document.getElementById("bsContainer").classList.remove("show");
+  document.getElementById("videoCenter").style.opacity = "1";
+}
+
+function toggleFilters() {
+  filtersOpen = !filtersOpen;
+  document.getElementById("filterExpanded").className = "filter-expanded" + (filtersOpen?" show":"");
+  document.getElementById("filterToggleChip").textContent = filtersOpen ? "필터 접기 ▲" : "필터 펼치기 ▼";
+  document.getElementById("filterToggleChip").className = "filter-chip" + (filtersOpen?" active":"");
+}
+
+function cycleSort() {
+  sortIdx = (sortIdx+1)%SORTS.length; page=0;
+  document.getElementById("sortChip").textContent = "정렬: "+SORTS[sortIdx];
+  updateResetChip(); render();
+}
+
+function toggleBrand(b) {
+  selectedBrands = selectedBrands.includes(b) ? selectedBrands.filter(x=>x!==b) : [...selectedBrands,b];
+  page=0; updateBrands(); updateResetChip(); render();
+}
+function selectCat(c) { selectedCategory=c; page=0; updateCats(); updateResetChip(); render(); }
+function updatePrice() {
+  let lo = parseInt(document.getElementById("priceMin").value);
+  let hi = parseInt(document.getElementById("priceMax").value);
+  if (lo > hi) { let t=lo; lo=hi; hi=t; document.getElementById("priceMin").value=lo; document.getElementById("priceMax").value=hi; }
+  priceMin = lo; priceMax = hi;
+  document.getElementById("priceLabelMin").textContent = (lo/10000).toLocaleString() + "만원";
+  document.getElementById("priceLabelMax").textContent = hi >= 20000000 ? "2,000만원+" : (hi/10000).toLocaleString() + "만원";
+  // fill bar
+  const pct = v => (v / 20000000) * 100;
+  document.getElementById("priceFill").style.left = pct(lo) + "%";
+  document.getElementById("priceFill").style.width = (pct(hi) - pct(lo)) + "%";
+  page = 0; updateResetChip(); render();
+}
+
+function resetFilters() { selectedBrands=[]; selectedCategory="전체"; sortIdx=0; priceMin=0; priceMax=20000000; page=0; filtersOpen=false; document.getElementById("filterExpanded").className="filter-expanded"; document.getElementById("filterToggleChip").textContent="필터 펼치기 ▼"; document.getElementById("filterToggleChip").className="filter-chip"; document.getElementById("sortChip").textContent="정렬: 추천순"; document.getElementById("priceMin").value=0; document.getElementById("priceMax").value=20000000; document.getElementById("priceLabelMin").textContent="0원"; document.getElementById("priceLabelMax").textContent="2,000만원+"; document.getElementById("priceFill").style.left="0%"; document.getElementById("priceFill").style.width="100%"; updateBrands(); updateCats(); updateResetChip(); render(); }
+
+function updateResetChip() {
+  const hasFilter = selectedBrands.length > 0 || selectedCategory !== "전체" || sortIdx !== 0 || priceMin > 0 || priceMax < 20000000;
+  document.getElementById("resetChip").style.display = hasFilter ? "block" : "none";
+}
+
+function updateBrands() {
+  document.getElementById("brandChips").innerHTML = BRANDS.map(b=>`<button class="filter-chip${selectedBrands.includes(b)?' active':''}" onclick="toggleBrand('${b}')">${b}</button>`).join("");
+  const cc = document.getElementById("brandCountChip");
+  if (selectedBrands.length>0) { cc.style.display="block"; cc.textContent="브랜드 "+selectedBrands.length+"개"; } else cc.style.display="none";
+}
+function updateCats() {
+  document.getElementById("categoryChips").innerHTML = CATEGORIES.map(c=>`<button class="filter-chip${selectedCategory===c?' active':''}" onclick="selectCat('${c}')">${c}</button>`).join("");
+}
+
+function render() {
+  filtered = PRODUCTS.filter(p => {
+    if (selectedBrands.length>0 && !selectedBrands.includes(p.brand)) return false;
+    if (selectedCategory!=="전체" && p.category!==selectedCategory) return false;
+    if (p.price < priceMin || p.price > priceMax) return false;
+    return true;
+  });
+  if (SORTS[sortIdx]==="가격 낮은순") filtered.sort((a,b)=>a.price-b.price);
+  else if (SORTS[sortIdx]==="가격 높은순") filtered.sort((a,b)=>b.price-a.price);
+
+  const total = Math.ceil(filtered.length/PER_PAGE);
+  if (page>=total) page = Math.max(0,total-1);
+
+  const grid = document.getElementById("bsGrid");
+  const empty = document.getElementById("emptyState");
+  const pag = document.getElementById("pagination");
+
+  if (filtered.length===0) {
+    grid.style.display="none"; empty.classList.add("show"); pag.style.display="none"; return;
+  }
+  empty.classList.remove("show"); grid.style.display="grid";
+
+  const start = page * PER_PAGE;
+  grid.innerHTML = filtered.slice(start, start+PER_PAGE).map(card).join("");
+
+  if (total<=1) { pag.style.display="none"; return; }
+
+  pag.style.display = "flex";
+  document.getElementById("prevBtn").disabled = (page===0);
+  document.getElementById("nextBtn").disabled = (page===total-1);
+  document.getElementById("pageCounter").textContent = (page+1)+" / "+total;
+
+  const dots = document.getElementById("pageDots");
+  dots.innerHTML = "";
+  for (let i=0; i<total; i++) {
+    const d = document.createElement("button");
+    d.className = "page-dot"+(i===page?" active":"");
+    d.onclick = ()=>goToPage(i);
+    dots.appendChild(d);
+  }
+}
+
+function changePage(dir) {
+  const total = Math.ceil(filtered.length/PER_PAGE);
+  const n = page+dir;
+  if (n>=0 && n<total) { page=n; render(); }
+}
+function goToPage(p) { page=p; render(); }
+
+// Init
+document.getElementById("recGrid").innerHTML = PRODUCTS.slice(0,6).map(card).join("");
+updateBrands(); updateCats(); updateResetChip(); render();
+</script>
+</body>
+</html>
