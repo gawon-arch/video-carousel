@@ -87,11 +87,21 @@
   .bs-header .bs-title { font-size: 17px; font-weight: 700; color: #1F2937; }
   .bs-header .bs-close { background: none; border: none; cursor: pointer; font-size: 22px; color: #9CA3AF; padding: 4px; line-height: 1; }
   .bs-filters { padding: 0 16px 6px; border-bottom: 1px solid #F3F4F6; }
-  .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+  .filter-bar { display: flex; align-items: center; gap: 8px; padding-bottom: 6px; }
+  .sort-select { padding: 7px 28px 7px 12px; border-radius: 8px; border: 1px solid #D1D5DB; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%236B7280' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat right 10px center; font-size: 13px; color: #374151; cursor: pointer; -webkit-appearance: none; appearance: none; font-weight: 500; }
+  .filter-icon-btn { position: relative; width: 38px; height: 38px; border-radius: 10px; border: 1px solid #D1D5DB; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+  .filter-icon-btn.active { border-color: #7C3AED; background: #F3EEFF; }
+  .filter-icon-btn svg { width: 18px; height: 18px; stroke: #374151; fill: none; stroke-width: 2; stroke-linecap: round; }
+  .filter-icon-btn.active svg { stroke: #7C3AED; }
+  .filter-badge { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; border-radius: 8px; background: #7C3AED; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
+  .reset-text-btn { padding: 7px 12px; border-radius: 8px; border: none; background: none; color: #EF4444; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; display: none; }
+  .reset-text-btn:hover { background: #FEF2F2; }
+  .filter-bar-spacer { flex: 1; }
+
   .filter-chip { padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
   .filter-chip.active { border: 1.5px solid #7C3AED; background: #F3EEFF; color: #7C3AED; font-weight: 600; }
   .filter-chip:not(.active) { border: 1px solid #D1D5DB; background: #fff; color: #6B7280; font-weight: 400; }
-  .reset-chip { border: 1.5px solid #EF4444 !important; background: #FEF2F2 !important; color: #EF4444 !important; font-weight: 600 !important; }
+
   .filter-expanded { padding-top: 8px; padding-bottom: 4px; display: none; }
   .filter-expanded.show { display: block; }
   .filter-section { margin-bottom: 10px; }
@@ -179,10 +189,18 @@
       <div class="bs-header"><span class="bs-title">이 상품은 어떠세요?</span><button class="bs-close" onclick="closeBottomSheet()">✕</button></div>
       <div class="bs-filters">
         <div class="filter-bar">
-          <button class="filter-chip reset-chip" id="resetChip" onclick="resetFilters()" style="display:none;">✕ 초기화</button>
-          <button class="filter-chip" id="filterToggleChip" onclick="toggleFilters()">필터 펼치기 ▼</button>
-          <button class="filter-chip" id="sortChip" onclick="cycleSort()">정렬: 추천순</button>
-          <button class="filter-chip active" id="brandCountChip">브랜드 1개</button>
+          <select class="sort-select" id="sortSelect" onchange="changeSort()">
+            <option value="0">추천순</option>
+            <option value="1">가격 낮은순</option>
+            <option value="2">가격 높은순</option>
+            <option value="3">신상품순</option>
+          </select>
+          <button class="filter-icon-btn" id="filterIconBtn" onclick="toggleFilters()">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+            <span class="filter-badge" id="filterBadge" style="display:none;">0</span>
+          </button>
+          <div class="filter-bar-spacer"></div>
+          <button class="reset-text-btn" id="resetBtn" onclick="resetFilters()">초기화</button>
         </div>
         <div class="filter-expanded" id="filterExpanded">
           <div class="filter-section"><div class="filter-section-label">브랜드</div><div class="chips" id="brandChips"></div></div>
@@ -285,14 +303,12 @@ function closeBottomSheet() {
 function toggleFilters() {
   filtersOpen = !filtersOpen;
   document.getElementById("filterExpanded").className = "filter-expanded" + (filtersOpen?" show":"");
-  document.getElementById("filterToggleChip").textContent = filtersOpen ? "필터 접기 ▲" : "필터 펼치기 ▼";
-  document.getElementById("filterToggleChip").className = "filter-chip" + (filtersOpen?" active":"");
+  document.getElementById("filterIconBtn").className = "filter-icon-btn" + (filtersOpen?" active":"");
 }
 
-function cycleSort() {
-  sortIdx = (sortIdx+1)%SORTS.length; page=0;
-  document.getElementById("sortChip").textContent = "정렬: "+SORTS[sortIdx];
-  updateResetChip(); render();
+function changeSort() {
+  sortIdx = parseInt(document.getElementById("sortSelect").value);
+  page=0; render();
 }
 
 function toggleBrand(b) {
@@ -314,17 +330,22 @@ function updatePrice() {
   page = 0; updateResetChip(); render();
 }
 
-function resetFilters() { selectedBrands=[]; selectedCategory="전체"; sortIdx=0; priceMin=0; priceMax=20000000; page=0; filtersOpen=false; document.getElementById("filterExpanded").className="filter-expanded"; document.getElementById("filterToggleChip").textContent="필터 펼치기 ▼"; document.getElementById("filterToggleChip").className="filter-chip"; document.getElementById("sortChip").textContent="정렬: 추천순"; document.getElementById("priceMin").value=0; document.getElementById("priceMax").value=20000000; document.getElementById("priceLabelMin").textContent="0원"; document.getElementById("priceLabelMax").textContent="2,000만원+"; document.getElementById("priceFill").style.left="0%"; document.getElementById("priceFill").style.width="100%"; updateBrands(); updateCats(); updateResetChip(); render(); }
+function resetFilters() { selectedBrands=[]; selectedCategory="전체"; sortIdx=0; priceMin=0; priceMax=20000000; page=0; filtersOpen=false; document.getElementById("filterExpanded").className="filter-expanded"; document.getElementById("filterIconBtn").className="filter-icon-btn"; document.getElementById("sortSelect").value="0"; document.getElementById("priceMin").value=0; document.getElementById("priceMax").value=20000000; document.getElementById("priceLabelMin").textContent="0원"; document.getElementById("priceLabelMax").textContent="2,000만원+"; document.getElementById("priceFill").style.left="0%"; document.getElementById("priceFill").style.width="100%"; updateBrands(); updateCats(); updateResetChip(); render(); }
 
 function updateResetChip() {
-  const hasFilter = selectedBrands.length > 0 || selectedCategory !== "전체" || sortIdx !== 0 || priceMin > 0 || priceMax < 20000000;
-  document.getElementById("resetChip").style.display = hasFilter ? "block" : "none";
+  let count = 0;
+  if (selectedBrands.length > 0) count++;
+  if (selectedCategory !== "전체") count++;
+  if (priceMin > 0 || priceMax < 20000000) count++;
+  const badge = document.getElementById("filterBadge");
+  const resetBtn = document.getElementById("resetBtn");
+  const hasFilter = count > 0 || sortIdx !== 0;
+  if (count > 0) { badge.style.display = "flex"; badge.textContent = count; } else { badge.style.display = "none"; }
+  resetBtn.style.display = hasFilter ? "block" : "none";
 }
 
 function updateBrands() {
   document.getElementById("brandChips").innerHTML = BRANDS.map(b=>`<button class="filter-chip${selectedBrands.includes(b)?' active':''}" onclick="toggleBrand('${b}')">${b}</button>`).join("");
-  const cc = document.getElementById("brandCountChip");
-  if (selectedBrands.length>0) { cc.style.display="block"; cc.textContent="브랜드 "+selectedBrands.length+"개"; } else cc.style.display="none";
 }
 function updateCats() {
   document.getElementById("categoryChips").innerHTML = CATEGORIES.map(c=>`<button class="filter-chip${selectedCategory===c?' active':''}" onclick="selectCat('${c}')">${c}</button>`).join("");
